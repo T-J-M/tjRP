@@ -177,7 +177,7 @@ public class RPcore : Script
             paid_fines = 0;
             unpaid_fines = 0;
             phone_number = "000-0000";
-            faction = "Civillian";
+            faction = "civillian";
             vehicles = new List<VehicleData>();
             fines = new List<FineData>();
             inventory = new List<ItemData>();
@@ -526,7 +526,7 @@ public class RPcore : Script
 
     public void OnPlayerFinishedDownloadHandler(Client player)
     {
-        //doesnt actually trigger, ever. wtf
+        //???
     }
 
     [Command("myid")]
@@ -554,16 +554,35 @@ public class RPcore : Script
         API.sendChatMessageToPlayer(player, "X:" + vec.X + "Y:" + vec.Y + "Z:" + vec.Z);
     }
 
+    [Command("setfaction", GreedyArg = true)]
+    public void setFactionCommand(Client player, string fac)
+    {
+        int indx = getPlayerIndexByRealName(player.name);
+        if (indx != -1)
+        {
+            if(fac == "police" || fac == "civillian")
+            {
+                PlayerData temp = PlayerDatabase[indx];
+                temp.faction = fac;
+                PlayerDatabase[indx] = temp;
+            }
+            else
+            {
+                API.sendChatMessageToPlayer(player, "Faction is not valid!");
+            }
+        }
+    }
+
     public void meCommand(Client player, string msg)
     {
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            string msgr = "~p~>" + PlayerDatabase[indx].player_fake_name + " " + msg;
+            string msgr = ">" + PlayerDatabase[indx].player_fake_name + " " + msg;
             var players = API.getPlayersInRadiusOfPlayer(30, player);
             foreach (Client c in players)
             {
-                API.sendChatMessageToPlayer(c, msgr);
+                API.sendChatMessageToPlayer(c, "~#CC99FF~", msgr);
             }
         }
     }
@@ -660,15 +679,18 @@ public class RPcore : Script
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            ObjectData temp;
-            temp.id = RandomIDObjectPool[0];
-            RandomIDObjectPool.RemoveAt(0);
-            temp.obj = API.createObject(-1036807324, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
-            temp.deletable = true;
-            API.setEntitySyncedData(temp.obj, "del", true);
-            API.setEntityCollisionless(temp.obj, true);
-            API.setEntityPositionFrozen(temp.obj, true);
-            worldObjectPool.Add(temp);
+            if(PlayerDatabase[indx].faction == "police")
+            {
+                ObjectData temp;
+                temp.id = RandomIDObjectPool[0];
+                RandomIDObjectPool.RemoveAt(0);
+                temp.obj = API.createObject(-1036807324, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
+                temp.deletable = true;
+                API.setEntitySyncedData(temp.obj, "del", true);
+                API.setEntityCollisionless(temp.obj, true);
+                API.setEntityPositionFrozen(temp.obj, true);
+                worldObjectPool.Add(temp);
+            }
         }
     }
 
@@ -678,28 +700,31 @@ public class RPcore : Script
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            float smallestDist = 100.0f;
-            NetHandle closestObj = new NetHandle();
-            bool found = false;
-            for(int i = 0; i < worldObjectPool.Count; i++)
+            if (PlayerDatabase[indx].faction == "police")
             {
-                float vr = vecdist(API.getEntityPosition(worldObjectPool[i].obj), API.getEntityPosition(player));
-                if (vr < smallestDist)
+                float smallestDist = 100.0f;
+                NetHandle closestObj = new NetHandle();
+                bool found = false;
+                for (int i = 0; i < worldObjectPool.Count; i++)
                 {
-                    smallestDist = vr;
-                    closestObj = worldObjectPool[i].obj;
-                    found = true;
-                }
-            }
-
-            if(found)
-            {
-                if(smallestDist < 2.5f)
-                {
-                    bool val = API.getEntitySyncedData(closestObj, "del");
-                    if(val == true)
+                    float vr = vecdist(API.getEntityPosition(worldObjectPool[i].obj), API.getEntityPosition(player));
+                    if (vr < smallestDist)
                     {
-                        API.deleteEntity(closestObj);
+                        smallestDist = vr;
+                        closestObj = worldObjectPool[i].obj;
+                        found = true;
+                    }
+                }
+
+                if (found)
+                {
+                    if (smallestDist < 2.5f)
+                    {
+                        bool val = API.getEntitySyncedData(closestObj, "del");
+                        if (val == true)
+                        {
+                            API.deleteEntity(closestObj);
+                        }
                     }
                 }
             }
@@ -1102,34 +1127,38 @@ public class RPcore : Script
     [Command("license", GreedyArg = true)]
     public void carinfoFunc(Client player, string license)
     {
+
         //API.triggerClientEvent(player, "vehicle_draw_text", temp.vehicle_hash, temp.vehicle_id, temp.owner_name, temp.license_plate);
         license = license.ToUpper(); //Get lowercase string for lazy people
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            List<NetHandle> vehs = new List<NetHandle>();
-            vehs = API.getAllVehicles();
-            bool found = false;
-            for (int i = 0; i < vehs.Count; i++)
+            if (PlayerDatabase[indx].faction == "police")
             {
-                if (API.getEntitySyncedData(vehs[i], "plate") == license)
+                List<NetHandle> vehs = new List<NetHandle>();
+                vehs = API.getAllVehicles();
+                bool found = false;
+                for (int i = 0; i < vehs.Count; i++)
                 {
-                    //Display data about car
-                    API.sendChatMessageToPlayer(player, "Vehicle is ~g~registered ~w~in database!");
-                    var model = API.getEntityModel(vehs[i]);
-                    string plr_nm = getOwnerNameByVehicleID(API.getEntitySyncedData(vehs[i], "id"));
-                    int plr_indx = getPlayerIndexByFakeName(plr_nm);
-                    int veh_indx = getVehicleIndexByOwnerName(plr_nm, API.getEntitySyncedData(vehs[i], "id"));
-                    API.sendChatMessageToPlayer(player, "Model: ~b~" + API.getVehicleDisplayName((VehicleHash)model) + " ~w~-~b~|~w~- Color: ~b~" + PlayerDatabase[plr_indx].vehicles[veh_indx].color_name);
-                    API.sendChatMessageToPlayer(player, "License Plate: ~b~" + license);
-                    API.sendChatMessageToPlayer(player, "Owner: ~b~" + getVehicleOwnerByID(API.getEntitySyncedData(vehs[i], "id")));
-                    found = true;
+                    if (API.getEntitySyncedData(vehs[i], "plate") == license)
+                    {
+                        //Display data about car
+                        API.sendChatMessageToPlayer(player, "Vehicle is ~g~registered ~w~in database!");
+                        var model = API.getEntityModel(vehs[i]);
+                        string plr_nm = getOwnerNameByVehicleID(API.getEntitySyncedData(vehs[i], "id"));
+                        int plr_indx = getPlayerIndexByFakeName(plr_nm);
+                        int veh_indx = getVehicleIndexByOwnerName(plr_nm, API.getEntitySyncedData(vehs[i], "id"));
+                        API.sendChatMessageToPlayer(player, "Model: ~b~" + API.getVehicleDisplayName((VehicleHash)model) + " ~w~-~b~|~w~- Color: ~b~" + PlayerDatabase[plr_indx].vehicles[veh_indx].color_name);
+                        API.sendChatMessageToPlayer(player, "License Plate: ~b~" + license);
+                        API.sendChatMessageToPlayer(player, "Owner: ~b~" + getVehicleOwnerByID(API.getEntitySyncedData(vehs[i], "id")));
+                        found = true;
+                    }
                 }
-            }
-            if (found == false)
-            {
-                //BUSTED
-                API.sendChatMessageToPlayer(player, "Vehicle is not ~r~registered ~w~in database!");
+                if (found == false)
+                {
+                    //BUSTED
+                    API.sendChatMessageToPlayer(player, "Vehicle is not ~r~registered ~w~in database!");
+                }
             }
         }
     }
