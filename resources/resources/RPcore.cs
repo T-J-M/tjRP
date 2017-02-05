@@ -204,6 +204,12 @@ public class RPcore : Script
         API.onClientEventTrigger += OnClientEventTriggerHandler;
         API.onChatMessage += OnChatMessageHandler;
         API.onChatCommand += OnChatCommandHandler;
+        API.onUpdate += OnUpdateHandler;
+    }
+
+    public void OnUpdateHandler()
+    {
+        
     }
 
     public void OnChatMessageHandler(Client player, string message, CancelEventArgs e)
@@ -275,6 +281,11 @@ public class RPcore : Script
                 API.sendNativeToAllPlayers(0xB5D45264751B7DF0, API.getPlayerVehicle(player), 0, !API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_right"));
             if (API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_right") != null)
                 API.setEntitySyncedData(API.getPlayerVehicle(player), "indicator_right", !API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_right"));
+        }
+        else if(eventName == "do_anim")
+        {
+            API.sendChatMessageToPlayer(player, "do_anim_call: " + arguments[0]);
+            animFunc(player, (string)arguments[0]);
         }
     }
 
@@ -1005,6 +1016,7 @@ public class RPcore : Script
                     }
                 }
             }
+
             else
             {
                 API.sendChatMessageToPlayer(player, "You cannot do that in a vehicle!");
