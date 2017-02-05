@@ -33,7 +33,7 @@ public class RPcore : Script
     }
 
     //Color names by color values
-    public ColorData[] color_names = new ColorData[12]
+    public ColorData[] color_names = new ColorData[]
     {
         new ColorData("Black", new List<int>() {0, 1, 11, 12, 15, 17, 21, 22, 147}),
         new ColorData("Silver", new List<int>() {2, 3, 4, 5, 6, 7, 8, 9, 10, 13, 14, 17, 18, 19, 20, 23, 24, 25, 26, 117, 118, 119, 156, 144}),
@@ -281,7 +281,7 @@ public class RPcore : Script
 
     string getColorNameByInt(int col)
     {
-        for (int i = 0; i < 12; i++)
+        for (int i = 0; i < color_names.Length; i++)
         {
             for (int j = 0; j < color_names[i].colors.Count; j++)
             {
@@ -751,6 +751,53 @@ public class RPcore : Script
         Cancellable = 1 << 7
     }
 
+    public struct AnimData
+    {
+        public string action_name;
+        public Int32 object_id;
+        public string bone_index;
+        public Vector3 position_offset;
+        public Vector3 rotation_offset;
+        public int animation_flag;
+        public string anim_dict;
+        public string anim_name;
+        public AnimData(string action, Int32 obj_id, string bone_indx, Vector3 posOff, Vector3 rotOff, int anim_flag, string anim_d, string anim_n)
+        {
+            action_name = action;
+            object_id = obj_id;
+            bone_index = bone_indx;
+            position_offset = posOff;
+            rotation_offset = rotOff;
+            animation_flag = anim_flag;
+            anim_dict = anim_d;
+            anim_name = anim_n;
+        }
+    }
+
+    public AnimData[] anim_names = new AnimData[]
+    {
+        new AnimData("clean", -1, "null", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop), "switch@franklin@cleaning_car", "001946_01_gc_fras_v2_ig_5_base"),
+        new AnimData("clipboard1", -969349845, "PH_L_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_clipboard@male@idle_a", "idle_a"),
+        new AnimData("clipboard2", -969349845, "PH_L_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_clipboard@male@idle_a", "idle_d"),
+        new AnimData("phone1", 94130617, "PH_R_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_mobile_film_shocking@female@idle_a", "idle_a"),
+        new AnimData("phone2", 94130617, "PH_R_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_mobile_film_shocking@male@idle_a", "idle_a"),
+        new AnimData("phone3", 94130617, "PH_R_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_mobile_film_shocking@female@idle_a", "idle_b"),
+        new AnimData("checkbody1", -1, "null", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop), "amb@medic@standing@kneel@idle_a", "idle_a"),
+        new AnimData("checkbody2", -1, "null", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop), "amb@medic@standing@tendtodead@idle_a", "idle_a"),
+        new AnimData("leancar", -1, "null", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop), "switch@michael@sitting_on_car_bonnet", "sitting_on_car_bonnet_loop"),
+        new AnimData("sit", -1, "null", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop), "switch@michael@sitting", "idle"),
+        new AnimData("leanfoot", -1, "null", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop), "amb@world_human_leaning@male@wall@back@foot_up@idle_a", "idle_a"),
+        new AnimData("lean", -1, "null", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop), "amb@world_human_leaning@male@wall@back@hands_together@idle_a", "idle_a"),
+        new AnimData("handsupknees", -1, "null", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.StopOnLastFrame), "busted", "idle_2_hands_up"),
+        new AnimData("handsup", -1, "null", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "missfbi5ig_20b", "hands_up_scientist"),
+        new AnimData("smoke1", 175300549, "PH_R_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_aa_smoke@male@idle_a", "idle_a"),
+        new AnimData("smoke1", 175300549, "PH_R_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_leaning@female@smoke@idle_a", "idle_a"),
+        new AnimData("coffee1", -163314598, "PH_R_Hand", new Vector3(0.0, 0.0, -0.1), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_aa_coffee@idle_a", "idle_a"),
+        new AnimData("coffee1", -163314598, "PH_R_Hand", new Vector3(0.0, 0.0, -0.1), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_drinking@coffee@male@idle_a", "idle_a"),
+        new AnimData("guitar", -708789241, "PH_L_Hand", new Vector3(0.0, 0.0, -0.1), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_musician@guitar@male@idle_a", "idle_b"),
+        new AnimData("guitar", 591916419, "PH_L_Hand", new Vector3(0.0, 0.0, -0.1), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_musician@bongos@male@idle_a", "idle_a"),
+    };
+
     [Command("anim", GreedyArg = true)]
     public void animFunc(Client player, string action)
     {
@@ -759,223 +806,35 @@ public class RPcore : Script
         {
             if (!API.isPlayerInAnyVehicle(player))
             {
-                //The holy grail of animations (Always use PH_L_HAND/PH_R_HAND as the game optimizes objects for actual hand usage automatically, learned that after wasting hours making custom positions)
-                if (action == "clean")
+                if (action == "stop")
                 {
                     API.stopPlayerAnimation(player);
                     NetHandle temp = new NetHandle();
                     if (API.getEntitySyncedData(player, "anim_obj") != null)
                         temp = API.getEntitySyncedData(player, "anim_obj");
                     API.deleteEntity(temp);
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop), "switch@franklin@cleaning_car", "001946_01_gc_fras_v2_ig_5_base");
                 }
                 else if (action == "help")
                 {
                     API.triggerClientEvent(player, "anim_list");
                 }
-                else if (action == "clipboard1")
+                else
                 {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(-969349845, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_L_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_clipboard@male@idle_a", "idle_a");
-                }
-                else if (action == "clipboard2")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(-969349845, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_L_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_clipboard@male@idle_b", "idle_d");
-                }
-                else if (action == "phone1")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(94130617, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_R_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
-
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_mobile_film_shocking@female@idle_a", "idle_a");
-                }
-                else if (action == "phone2")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(94130617, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_R_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
-
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_mobile_film_shocking@male@idle_a", "idle_a");
-                }
-                else if (action == "phone3")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(94130617, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_R_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
-
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_mobile_film_shocking@female@idle_a", "idle_b");
-                }
-                else if (action == "checkbody1")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop), "amb@medic@standing@kneel@idle_a", "idle_a");
-                }
-                else if (action == "checkbody2")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop), "amb@medic@standing@tendtodead@idle_a", "idle_a");
-                }
-                else if (action == "leancar")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop), "switch@michael@sitting_on_car_bonnet", "sitting_on_car_bonnet_loop");
-                }
-                else if (action == "sit")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop), "switch@michael@sitting", "idle");
-                }
-                else if (action == "leanfoot")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop), "amb@world_human_leaning@male@wall@back@foot_up@idle_a", "idle_a");
-                }
-                else if (action == "lean")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop), "amb@world_human_leaning@male@wall@back@hands_together@idle_a", "idle_a");
-                }
-                else if (action == "handsupknees")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.StopOnLastFrame), "busted", "idle_2_hands_up");
-                }
-                else if (action == "handsup")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "missfbi5ig_20b", "hands_up_scientist");
-                }
-                else if (action == "smoke1")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(175300549, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_R_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_aa_smoke@male@idle_a", "idle_a");
-                }
-                else if (action == "smoke2")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(175300549, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_R_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_leaning@female@smoke@idle_a", "idle_a");
-                }
-                else if (action == "coffee1")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(-163314598, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_R_Hand", new Vector3(0.0, 0.0, -0.1), new Vector3(0.0, 0.0, 0.0));
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_aa_coffee@idle_a", "idle_a");
-                }
-                else if (action == "coffee2")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(-163314598, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_R_Hand", new Vector3(0.0, 0.0, -0.1), new Vector3(0.0, 0.0, 0.0));
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_drinking@coffee@male@idle_a", "idle_a");
-                }
-                else if (action == "guitar")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(-708789241, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_L_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_musician@guitar@male@idle_a", "idle_b");
-                }
-                else if (action == "drums")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
-                    API.setEntitySyncedData(player, "anim_obj", API.createObject(591916419, API.getEntityPosition(player), API.getEntityRotation(player)));
-                    API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, "PH_L_Hand", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
-                    API.playPlayerAnimation(player, (int)(AnimationFlags.Loop | AnimationFlags.OnlyAnimateUpperBody | AnimationFlags.AllowPlayerControl), "amb@world_human_musician@bongos@male@idle_a", "idle_a");
-                }
-                else if (action == "stop")
-                {
-                    API.stopPlayerAnimation(player);
-                    NetHandle temp = new NetHandle();
-                    if (API.getEntitySyncedData(player, "anim_obj") != null)
-                        temp = API.getEntitySyncedData(player, "anim_obj");
-                    API.deleteEntity(temp);
+                    for (int i = 0; i < anim_names.Length; i++)
+                    {
+                        if (anim_names[i].action_name == action)
+                        {
+                            API.stopPlayerAnimation(player);
+                            NetHandle temp = new NetHandle();
+                            if (API.getEntitySyncedData(player, "anim_obj") != null)
+                                temp = API.getEntitySyncedData(player, "anim_obj");
+                            API.deleteEntity(temp);
+                            API.setEntitySyncedData(player, "anim_obj", API.createObject(anim_names[i].object_id, API.getEntityPosition(player), API.getEntityRotation(player)));
+                            API.attachEntityToEntity(API.getEntitySyncedData(player, "anim_obj"), player, anim_names[i].bone_index, anim_names[i].position_offset, anim_names[i].rotation_offset);
+                            API.playPlayerAnimation(player, anim_names[i].animation_flag, anim_names[i].anim_dict, anim_names[i].anim_name);
+                            break;
+                        }
+                    }
                 }
             }
             else
