@@ -554,6 +554,20 @@ public class RPcore : Script
         API.sendChatMessageToPlayer(player, "X:" + vec.X + "Y:" + vec.Y + "Z:" + vec.Z);
     }
 
+    public void meCommand(Client player, string msg)
+    {
+        int indx = getPlayerIndexByRealName(player.name);
+        if (indx != -1)
+        {
+            string msgr = "~p~>" + PlayerDatabase[indx].player_fake_name + " " + msg;
+            var players = API.getPlayersInRadiusOfPlayer(30, player);
+            foreach (Client c in players)
+            {
+                API.sendChatMessageToPlayer(c, msgr);
+            }
+        }
+    }
+
     [Command("lock")]
     public void lockFunc(Client player)
     {
@@ -584,12 +598,7 @@ public class RPcore : Script
                     {
                         API.setVehicleLocked(closestveh, true);
                         //API.sendChatMessageToPlayer(player, "You have ~b~locked ~w~the car.");
-                        string msg = "~p~>" + player.name + " has locked the vehicle.";
-                        var players = API.getPlayersInRadiusOfPlayer(30, player);
-                        foreach (Client c in players)
-                        {
-                            API.sendChatMessageToPlayer(c, msg);
-                        }
+                        meCommand(player, "has locked the vehicle.");
                         API.setEntitySyncedData(closestveh, "locked", true);
                     }
                     else
@@ -623,6 +632,27 @@ public class RPcore : Script
     }
 
     List<ObjectData> worldObjectPool = new List<ObjectData>();
+
+    [Command("seatbelt")]
+    public void seatbeltFunc(Client player)
+    {
+        int indx = getPlayerIndexByRealName(player.name);
+        if (indx != -1)
+        {
+            if(API.isPlayerInAnyVehicle(player))
+            {
+                API.setPlayerSeatbelt(player, !API.getPlayerSeatbelt(player));
+                if(API.getPlayerSeatbelt(player))
+                {
+                    meCommand(player, " put on their seatbelt.");
+                }
+                else
+                {
+                    meCommand(player, " took off their seatbelt.");
+                }
+            }
+        }
+    }
 
     [Command("spawncone")]
     public void spawnConeFunc(Client player)
@@ -707,12 +737,7 @@ public class RPcore : Script
                     {
                         API.setVehicleLocked(closestveh, false);
                         // API.sendChatMessageToPlayer(player, "You have ~b~unlocked ~w~the car.");
-                        string msg = "~p~>" + player.name + " has unlocked the vehicle.";
-                        var players = API.getPlayersInRadiusOfPlayer(30, player);
-                        foreach (Client c in players)
-                        {
-                            API.sendChatMessageToPlayer(c, msg);
-                        }
+                        meCommand(player, "has unlocked the vehicle.");
                         API.setEntitySyncedData(closestveh, "locked", false);
                     }
                     else
@@ -756,22 +781,12 @@ public class RPcore : Script
                         API.setVehicleEngineStatus(API.getPlayerVehicle(player), !API.getVehicleEngineStatus(API.getPlayerVehicle(player))); //Just inverse the engine state
                         if (API.getVehicleEngineStatus(API.getPlayerVehicle(player)) == true)
                         {
-                            string msg = "~p~>" + player.name + " has turned the engine ON.";
-                            var players = API.getPlayersInRadiusOfPlayer(30, player);
-                            foreach (Client c in players)
-                            {
-                                API.sendChatMessageToPlayer(c, msg);
-                            }
+                            meCommand(player, "has turned the engine ON.");
                         }
                             //API.sendChatMessageToPlayer(player, "You have turned the engine ~g~ON.");
                         else
                         {
-                            string msg = "~p~>" + player.name + " has turned the engine OFF.";
-                            var players = API.getPlayersInRadiusOfPlayer(30, player);
-                            foreach (Client c in players)
-                            {
-                                API.sendChatMessageToPlayer(c, msg);
-                            }
+                            meCommand(player, "has turned the engine OFF.");
                         }
                             //API.sendChatMessageToPlayer(player, "You have turned the engine ~r~OFF.");
                     }
@@ -1146,7 +1161,7 @@ public class RPcore : Script
         {
             if (password == PlayerDatabase[indx].password)
             {
-                API.sendChatMessageToPlayer(player, "Welcome, ~b~" + player.name + "~w~!");
+                API.sendChatMessageToPlayer(player, "Welcome, ~b~" + PlayerDatabase[indx].player_fake_name + "~w~!");
                 if (indx != -1)
                 {
                     //Change player data and log him in
