@@ -92,7 +92,7 @@ public class RPcore : Script
             dirt_level = 0;
             license_plate = "TJM000";
             owner_name = "null";
-            faction = "Civillian";
+            faction = "civillian";
         }
     }
 
@@ -118,12 +118,21 @@ public class RPcore : Script
     }
 
     //Data for item stored in inventories
-    public struct ItemData
+    public struct ObjectData
     {
         public int id;
-        public int object_id;
-        public string type;
-        public string description;
+        public int obj_id;
+        public NetHandle obj;
+        public bool deletable;
+        public string name;
+        public ObjectData(int i, int obj_i, NetHandle o, bool del, string nm)
+        {
+            id = i;
+            obj_id = obj_i;
+            obj = o;
+            deletable = del;
+            name = nm;
+        }
     }
 
     public struct PlayerData
@@ -152,7 +161,7 @@ public class RPcore : Script
         public string faction;
         public List<VehicleData> vehicles;
         public List<FineData> fines;
-        public List<ItemData> inventory;
+        public List<ObjectData> inventory;
 
         public PlayerData(bool value)
         {
@@ -180,7 +189,7 @@ public class RPcore : Script
             faction = "civillian";
             vehicles = new List<VehicleData>();
             fines = new List<FineData>();
-            inventory = new List<ItemData>();
+            inventory = new List<ObjectData>();
         }
     }
 
@@ -648,18 +657,7 @@ public class RPcore : Script
         }
     }
 
-    public struct ObjectData
-    {
-        public int id;
-        public NetHandle obj;
-        public bool deletable;
-        public ObjectData(int i, NetHandle o, bool del)
-        {
-            id = i;
-            obj = o;
-            deletable = del;
-        }
-    }
+    
 
     List<ObjectData> worldObjectPool = new List<ObjectData>();
 
@@ -684,58 +682,135 @@ public class RPcore : Script
         }
     }
 
-    [Command("spawncone")]
-    public void spawnConeFunc(Client player)
+    [Command("removeitem", GreedyArg = true)]
+    public void removeItemFunc(Client player, string item)
     {
+        item = item.ToLower();
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            if(PlayerDatabase[indx].faction == "police")
+            for (int i = 0; i < PlayerDatabase[indx].inventory.Count; i++)
             {
-                ObjectData temp;
-                temp.id = RandomIDObjectPool[0];
-                RandomIDObjectPool.RemoveAt(0);
-                temp.obj = API.createObject(-1036807324, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
-                temp.deletable = true;
-                API.setEntitySyncedData(temp.obj, "del", true);
-                API.setEntityCollisionless(temp.obj, true);
-                API.setEntityPositionFrozen(temp.obj, true);
-                worldObjectPool.Add(temp);
+                if (PlayerDatabase[indx].inventory[i].name == item)
+                {
+                    PlayerDatabase[indx].inventory.RemoveAt(i);
+                    API.sendChatMessageToPlayer(player, "Destroyed object: " + PlayerDatabase[indx].inventory[i].id);
+                    break;
+                }
             }
         }
     }
 
-    [Command("deletecone")]
+    [Command("additem", GreedyArg = true)]
+    public void addItemFunc(Client player, string id)
+    {
+        int indx = getPlayerIndexByRealName(player.name);
+        if (indx != -1)
+        {
+            char[] delimiter = { ' ' };
+            string[] words = id.Split(delimiter);
+
+            string id_new;
+            string name_new;
+
+            id_new = words[0];
+            name_new = words[1];
+            name_new = name_new.ToLower();
+
+            ObjectData temp = new ObjectData();
+            temp.id = RandomIDObjectPool[0];
+            RandomIDObjectPool.RemoveAt(0);
+            temp.name = name_new;
+            temp.obj_id = Convert.ToInt32(id_new);
+            temp.deletable = true;
+            PlayerDatabase[indx].inventory.Add(temp);
+            API.sendChatMessageToPlayer(player, "Object added to inventory: " + temp.id);
+        }
+    }
+
+    [Command("inventory")]
+    public void inventoryFunc(Client player)
+    {
+        int indx = getPlayerIndexByRealName(player.name);
+        if (indx != -1)
+        {
+            API.sendChatMessageToPlayer(player, "~y~--Inventory--");
+            if (PlayerDatabase[indx].inventory.Count == 0)
+            {
+                API.sendChatMessageToPlayer(player, "~y~[EMPTY]");
+            }
+            else
+            {
+                for (int i = 0; i < PlayerDatabase[indx].inventory.Count; i++)
+                {
+                    API.sendChatMessageToPlayer(player, "~y~" + PlayerDatabase[indx].inventory[i].name);
+                }
+            }
+        }
+    }
+    //939377219
+    [Command("place", GreedyArg = true)]
+    public void spawnConeFunc(Client player, string item)
+    {
+        item = item.ToLower();
+        int indx = getPlayerIndexByRealName(player.name);
+        if (indx != -1)
+        {
+            for(int i = 0; i < PlayerDatabase[indx].inventory.Count; i++)
+            {
+                if(PlayerDatabase[indx].inventory[i].name == item)
+                {
+                    int tempid = RandomIDObjectPool[0];
+                    RandomIDObjectPool.RemoveAt(0);
+                    ObjectData temp = PlayerDatabase[indx].inventory[i];
+                    temp.obj = API.createObject(temp.obj_id, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
+                    API.setEntitySyncedData(temp.obj, "del", true);
+                    API.setEntityPositionFrozen(temp.obj, true);
+                    API.setEntityCollisionless(temp.obj, true);
+
+                    worldObjectPool.Add(temp);
+                    PlayerDatabase[indx].inventory.RemoveAt(i);
+                    API.sendChatMessageToPlayer(player, "Placed down object: " + temp.id);
+                    break;
+                }
+            }
+        }
+    }
+
+    [Command("pickup")]
     public void deleteConeFunc(Client player)
     {
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            if (PlayerDatabase[indx].faction == "police")
+            float smallestDist = 100.0f;
+            ObjectData closestObj = new ObjectData();
+            int obj_indx = 0;
+            bool found = false;
+            for (int i = 0; i < worldObjectPool.Count; i++)
             {
-                float smallestDist = 100.0f;
-                NetHandle closestObj = new NetHandle();
-                bool found = false;
-                for (int i = 0; i < worldObjectPool.Count; i++)
+                float vr = vecdist(API.getEntityPosition(worldObjectPool[i].obj), API.getEntityPosition(player));
+                if (vr < smallestDist)
                 {
-                    float vr = vecdist(API.getEntityPosition(worldObjectPool[i].obj), API.getEntityPosition(player));
-                    if (vr < smallestDist)
-                    {
-                        smallestDist = vr;
-                        closestObj = worldObjectPool[i].obj;
-                        found = true;
-                    }
+                    smallestDist = vr;
+                    closestObj = worldObjectPool[i];
+                    obj_indx = i;
+                    //worldObjectPool.RemoveAt(i);
+                    found = true;
                 }
+            }
 
-                if (found)
+            if (found)
+            {
+                if (smallestDist < 2.5f)
                 {
-                    if (smallestDist < 2.5f)
+                    bool val = API.getEntitySyncedData(closestObj.obj, "del");
+                    if (val == true)
                     {
-                        bool val = API.getEntitySyncedData(closestObj, "del");
-                        if (val == true)
-                        {
-                            API.deleteEntity(closestObj);
-                        }
+                        worldObjectPool.RemoveAt(obj_indx);
+                        PlayerDatabase[indx].inventory.Add(closestObj);
+                        API.deleteEntity(closestObj.obj);
+                        API.sendChatMessageToPlayer(player, "Picked up object: " + closestObj.id);
                     }
                 }
             }
@@ -1099,8 +1174,6 @@ public class RPcore : Script
         }
     }
 
-
-    //Used for debugging
     [Command("spawncar")]
     public void spawnCar(Client player)
     {
@@ -1118,7 +1191,6 @@ public class RPcore : Script
             temp.rotation = API.getEntityRotation(hash);
 
             temp.owner_name = PlayerDatabase[indx].player_fake_name;
-
             API.setEntitySyncedData(temp.vehicle_hash, "id", (int)temp.vehicle_id);
             API.setEntitySyncedData(temp.vehicle_hash, "owner", (string)temp.owner_name);
             API.setEntitySyncedData(temp.vehicle_hash, "plate", (string)temp.license_plate);
