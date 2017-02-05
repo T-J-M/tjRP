@@ -121,6 +121,7 @@ public class RPcore : Script
     public struct ItemData
     {
         public int id;
+        public int object_id;
         public string type;
         public string description;
     }
@@ -153,8 +154,6 @@ public class RPcore : Script
         public List<FineData> fines;
         public List<ItemData> inventory;
 
-        public NetHandle entityAttached; //Attach objects to player (Used for animations) (Needed so objects can be properly deleted whenever animation is over)
-
         public PlayerData(bool value)
         {
             player_id = -1;
@@ -182,7 +181,6 @@ public class RPcore : Script
             vehicles = new List<VehicleData>();
             fines = new List<FineData>();
             inventory = new List<ItemData>();
-            entityAttached = new NetHandle();
         }
     }
 
@@ -192,6 +190,7 @@ public class RPcore : Script
     public List<int> RandomIDPlayerPool = new List<int>();
     public List<int> RandomIDVehiclePool = new List<int>();
     public List<int> RandomIDFinePool = new List<int>();
+    public List<int> RandomIDObjectPool = new List<int>();
     int players_online = 0;
 
     public RPcore()
@@ -317,6 +316,14 @@ public class RPcore : Script
         return false;
     }
 
+    public bool doesIDObjectExist(int id)
+    {
+        for (int i = 0; i < RandomIDObjectPool.Count; i++)
+            if (RandomIDObjectPool[i] == id)
+                return true;
+        return false;
+    }
+
     public void OnResourceStartHandler()
     {
         API.consoleOutput("RPcore is initializing...");
@@ -344,6 +351,14 @@ public class RPcore : Script
             while (doesIDFineExist(temp))
                 temp = rnd.Next(1, 100000);
             RandomIDFinePool.Add(temp);
+        }
+        for (int i = 0; i < 1000; i++)
+        {
+            Random rnd = new Random();
+            int temp = rnd.Next(1, 100000);
+            while (doesIDObjectExist(temp))
+                temp = rnd.Next(1, 100000);
+            RandomIDObjectPool.Add(temp);
         }
         API.consoleOutput("RPcore has initialized!");
     }
@@ -521,6 +536,17 @@ public class RPcore : Script
         API.sendChatMessageToPlayer(player, "Your ID is: ~b~" + id + ".");
     }
 
+    [Command("me", GreedyArg = true)]
+    public void meFunc(Client player, string action)
+    {
+        string msg = "~p~>" + player.name + " " + action;
+        var players = API.getPlayersInRadiusOfPlayer(30, player);
+        foreach(Client c in players)
+        {
+            API.sendChatMessageToPlayer(c, msg);
+        }
+    }
+
     [Command("pos")] //debug
     public void getPos(Client player)
     {
@@ -557,7 +583,13 @@ public class RPcore : Script
                     if (getOwnerNameByVehicleID(API.getEntitySyncedData(closestveh, "id")) == PlayerDatabase[indx].player_fake_name)
                     {
                         API.setVehicleLocked(closestveh, true);
-                        API.sendChatMessageToPlayer(player, "You have ~b~locked ~w~the car.");
+                        //API.sendChatMessageToPlayer(player, "You have ~b~locked ~w~the car.");
+                        string msg = "~p~>" + player.name + " has locked the vehicle.";
+                        var players = API.getPlayersInRadiusOfPlayer(30, player);
+                        foreach (Client c in players)
+                        {
+                            API.sendChatMessageToPlayer(c, msg);
+                        }
                         API.setEntitySyncedData(closestveh, "locked", true);
                     }
                     else
@@ -573,6 +605,73 @@ public class RPcore : Script
             else
             {
                 API.sendChatMessageToPlayer(player, "No car found nearby.");
+            }
+        }
+    }
+
+    public struct ObjectData
+    {
+        public int id;
+        public NetHandle obj;
+        public bool deletable;
+        public ObjectData(int i, NetHandle o, bool del)
+        {
+            id = i;
+            obj = o;
+            deletable = del;
+        }
+    }
+
+    List<ObjectData> worldObjectPool = new List<ObjectData>();
+
+    [Command("spawncone")]
+    public void spawnConeFunc(Client player)
+    {
+        int indx = getPlayerIndexByRealName(player.name);
+        if (indx != -1)
+        {
+            ObjectData temp;
+            temp.id = RandomIDObjectPool[0];
+            RandomIDObjectPool.RemoveAt(0);
+            temp.obj = API.createObject(-1036807324, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
+            temp.deletable = true;
+            API.setEntitySyncedData(temp.obj, "del", true);
+            API.setEntityCollisionless(temp.obj, true);
+            API.setEntityPositionFrozen(temp.obj, true);
+            worldObjectPool.Add(temp);
+        }
+    }
+
+    [Command("deletecone")]
+    public void deleteConeFunc(Client player)
+    {
+        int indx = getPlayerIndexByRealName(player.name);
+        if (indx != -1)
+        {
+            float smallestDist = 100.0f;
+            NetHandle closestObj = new NetHandle();
+            bool found = false;
+            for(int i = 0; i < worldObjectPool.Count; i++)
+            {
+                float vr = vecdist(API.getEntityPosition(worldObjectPool[i].obj), API.getEntityPosition(player));
+                if (vr < smallestDist)
+                {
+                    smallestDist = vr;
+                    closestObj = worldObjectPool[i].obj;
+                    found = true;
+                }
+            }
+
+            if(found)
+            {
+                if(smallestDist < 2.5f)
+                {
+                    bool val = API.getEntitySyncedData(closestObj, "del");
+                    if(val == true)
+                    {
+                        API.deleteEntity(closestObj);
+                    }
+                }
             }
         }
     }
@@ -607,7 +706,13 @@ public class RPcore : Script
                     if (getOwnerNameByVehicleID(API.getEntitySyncedData(closestveh, "id")) == PlayerDatabase[indx].player_fake_name)
                     {
                         API.setVehicleLocked(closestveh, false);
-                        API.sendChatMessageToPlayer(player, "You have ~b~unlocked ~w~the car.");
+                        // API.sendChatMessageToPlayer(player, "You have ~b~unlocked ~w~the car.");
+                        string msg = "~p~>" + player.name + " has unlocked the vehicle.";
+                        var players = API.getPlayersInRadiusOfPlayer(30, player);
+                        foreach (Client c in players)
+                        {
+                            API.sendChatMessageToPlayer(c, msg);
+                        }
                         API.setEntitySyncedData(closestveh, "locked", false);
                     }
                     else
@@ -650,9 +755,25 @@ public class RPcore : Script
                     {
                         API.setVehicleEngineStatus(API.getPlayerVehicle(player), !API.getVehicleEngineStatus(API.getPlayerVehicle(player))); //Just inverse the engine state
                         if (API.getVehicleEngineStatus(API.getPlayerVehicle(player)) == true)
-                            API.sendChatMessageToPlayer(player, "You have turned the engine ~g~ON.");
+                        {
+                            string msg = "~p~>" + player.name + " has turned the engine ON.";
+                            var players = API.getPlayersInRadiusOfPlayer(30, player);
+                            foreach (Client c in players)
+                            {
+                                API.sendChatMessageToPlayer(c, msg);
+                            }
+                        }
+                            //API.sendChatMessageToPlayer(player, "You have turned the engine ~g~ON.");
                         else
-                            API.sendChatMessageToPlayer(player, "You have turned the engine ~r~OFF.");
+                        {
+                            string msg = "~p~>" + player.name + " has turned the engine OFF.";
+                            var players = API.getPlayersInRadiusOfPlayer(30, player);
+                            foreach (Client c in players)
+                            {
+                                API.sendChatMessageToPlayer(c, msg);
+                            }
+                        }
+                            //API.sendChatMessageToPlayer(player, "You have turned the engine ~r~OFF.");
                     }
                     else
                     {
@@ -751,16 +872,19 @@ public class RPcore : Script
         Cancellable = 1 << 7
     }
 
+    //Animation data
     public struct AnimData
     {
-        public string action_name;
-        public Int32 object_id;
-        public string bone_index;
-        public Vector3 position_offset;
-        public Vector3 rotation_offset;
-        public int animation_flag;
-        public string anim_dict;
-        public string anim_name;
+        public string action_name; //Command action
+        public Int32 object_id; //Object id (SET TO -1 IF IT HAS NONE)
+        public string bone_index; //Bone index for object (SET TO "null" IF THERE IS NONE)
+        public Vector3 position_offset; //Object position offset
+        public Vector3 rotation_offset; //Object rotation offset
+        public int animation_flag; //Animation flags
+        public string anim_dict; //Animation dictionary
+        public string anim_name; //Animation name
+
+        //Initializer
         public AnimData(string action, Int32 obj_id, string bone_indx, Vector3 posOff, Vector3 rotOff, int anim_flag, string anim_d, string anim_n)
         {
             action_name = action;
@@ -774,6 +898,7 @@ public class RPcore : Script
         }
     }
 
+    //Array of animation data
     public AnimData[] anim_names = new AnimData[]
     {
         new AnimData("clean", -1, "null", new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0), (int)(AnimationFlags.Loop), "switch@franklin@cleaning_car", "001946_01_gc_fras_v2_ig_5_base"),
@@ -806,7 +931,7 @@ public class RPcore : Script
         {
             if (!API.isPlayerInAnyVehicle(player))
             {
-                if (action == "stop")
+                if (action == "stop") //stop animation
                 {
                     API.stopPlayerAnimation(player);
                     NetHandle temp = new NetHandle();
@@ -816,7 +941,7 @@ public class RPcore : Script
                 }
                 else if (action == "help")
                 {
-                    API.triggerClientEvent(player, "anim_list");
+                    API.triggerClientEvent(player, "anim_list"); //Send trigger to client to display animation list
                 }
                 else
                 {
