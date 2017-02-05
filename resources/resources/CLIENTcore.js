@@ -101,7 +101,7 @@ API.onUpdate.connect(function () {
     {
         var is_onroof_stuck = API.returnNative("IS_VEHICLE_STUCK_ON_ROOF", 8, API.getPlayerVehicle(API.getLocalPlayer()));
         var is_veh_allwheels = API.returnNative("IS_VEHICLE_ON_ALL_WHEELS", 8, API.getPlayerVehicle(API.getLocalPlayer()));
-        if(is_roof_stuck === true)
+        if(is_onroof_stuck === true)
         {
             API.callNative("SET_VEHICLE_OUT_OF_CONTROL", API.getPlayerVehicle(API.getLocalPlayer()), false, false);
         }
