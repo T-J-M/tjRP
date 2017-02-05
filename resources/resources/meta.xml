@@ -1,5 +1,5 @@
 ﻿<meta>
-  <info name="RP Core Project" description="" author= "TJM" version="1.0" shadowcopy="true" />
+  <info name="RP Core Project" description="" author= "raptube69" version="1.0" shadowcopy="true" />
 
   <script src="RPcore.cs" type="server" lang="csharp" />
   <script src="CLIENTcore.js" type="client" lang="javascript" />
