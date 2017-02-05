@@ -748,6 +748,22 @@ public class RPcore : Script
             }
         }
     }
+
+    private double DegreeToRadian(double angle)
+    {
+        return Math.PI * angle / 180.0;
+    }
+
+    Vector3 rotatedVector(Vector3 src, Vector3 center, double angle)
+    {
+        Vector3 res = new Vector3(0.0, 0.0, 0.0);
+        double radius = 0.75;
+        res.X = Convert.ToSingle(Math.Cos(DegreeToRadian(angle)) * radius + center.X);
+        res.Y = Convert.ToSingle(Math.Sin(DegreeToRadian(angle)) * radius + center.Y);
+        res.Z = center.Z;
+
+        return res;
+    }
     //939377219
     [Command("place", GreedyArg = true)]
     public void spawnConeFunc(Client player, string item)
@@ -760,15 +776,19 @@ public class RPcore : Script
             {
                 if(PlayerDatabase[indx].inventory[i].name == item)
                 {
+                    API.playPlayerAnimation(player, 0, "amb@medic@standing@tendtodead@idle_a", "idle_a");
                     int tempid = RandomIDObjectPool[0];
                     RandomIDObjectPool.RemoveAt(0);
                     ObjectData temp = PlayerDatabase[indx].inventory[i];
                     temp.obj = API.createObject(temp.obj_id, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
+                    API.setEntityPosition(temp.obj, rotatedVector(API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player).Z + 90.0));
+                    API.consoleOutput("Player Z ROT: " + API.getEntityRotation(player).Z);
                     API.setEntitySyncedData(temp.obj, "del", true);
                     API.setEntityPositionFrozen(temp.obj, true);
                     API.setEntityCollisionless(temp.obj, true);
-
                     worldObjectPool.Add(temp);
+
+                    
                     PlayerDatabase[indx].inventory.RemoveAt(i);
                     API.sendChatMessageToPlayer(player, "Placed down object: " + temp.id);
                     break;
@@ -807,6 +827,7 @@ public class RPcore : Script
                     bool val = API.getEntitySyncedData(closestObj.obj, "del");
                     if (val == true)
                     {
+                        API.playPlayerAnimation(player, 0, "amb@medic@standing@tendtodead@idle_a", "idle_a");
                         worldObjectPool.RemoveAt(obj_indx);
                         PlayerDatabase[indx].inventory.Add(closestObj);
                         API.deleteEntity(closestObj.obj);
