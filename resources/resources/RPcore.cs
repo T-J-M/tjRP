@@ -901,7 +901,7 @@ public class RPcore : Script
                     {
                         if (smallestDist < 3.5f)
                         {
-                            if (API.getVehicleDoorState(closestveh, 5) == true)
+                            if (API.getVehicleDoorState(closestveh, 5) == true || API.isVehicleDoorBroken(closestveh, 5) == true)
                             {
                                 for (int i = 0; i < PlayerDatabase[indx].inventory.Count; i++)
                                 {
@@ -984,7 +984,7 @@ public class RPcore : Script
                     {
                         if (action == "trunk")
                         {
-                            if (API.getVehicleDoorState(closestveh, 5) == true)
+                            if (API.getVehicleDoorState(closestveh, 5) == true || API.isVehicleDoorBroken(closestveh, 5) == true)
                             {
                                 API.sendChatMessageToPlayer(player, "~y~--Trunk Inventory--");
                                 VehicleData temp_vehdata = getVehicleDataByID(API.getEntitySyncedData(closestveh, "id"));
