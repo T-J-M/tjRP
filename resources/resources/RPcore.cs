@@ -282,14 +282,16 @@ public class RPcore : Script
         if (eventName == "indicator_left")
         {
             if (API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_left") != null)
-                API.sendNativeToAllPlayers(0xB5D45264751B7DF0, API.getPlayerVehicle(player), 1, !API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_left"));
+                API.sendNativeToAllPlayers(GTANetworkServer.Hash.SET_VEHICLE_INDICATOR_LIGHTS, API.getPlayerVehicle(player), 1, !API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_left"));
+                //API.sendNativeToAllPlayers(0xB5D45264751B7DF0, API.getPlayerVehicle(player), 1, !API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_left"));
             if (API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_left") != null)
                 API.setEntitySyncedData(API.getPlayerVehicle(player), "indicator_left", !API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_left"));
         }
         else if (eventName == "indicator_right")
         {
             if (API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_right") != null)
-                API.sendNativeToAllPlayers(0xB5D45264751B7DF0, API.getPlayerVehicle(player), 0, !API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_right"));
+                API.sendNativeToAllPlayers(GTANetworkServer.Hash.SET_VEHICLE_INDICATOR_LIGHTS, API.getPlayerVehicle(player), 0, !API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_right"));
+                //API.sendNativeToAllPlayers(0xB5D45264751B7DF0, API.getPlayerVehicle(player), 0, !API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_right"));
             if (API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_right") != null)
                 API.setEntitySyncedData(API.getPlayerVehicle(player), "indicator_right", !API.getEntitySyncedData(API.getPlayerVehicle(player), "indicator_right"));
         }
@@ -574,6 +576,12 @@ public class RPcore : Script
     public void OnPlayerFinishedDownloadHandler(Client player)
     {
         //???
+    }
+
+    [Command("cef")]
+    public void cefTestFunc(Client player)
+    {
+        API.triggerClientEvent(player, "cef_test");
     }
 
     [Command("myid")]

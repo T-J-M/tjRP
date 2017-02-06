@@ -83,12 +83,24 @@ anim_sub_menu.OnItemSelect.connect(function (sender, item, index) {
     }
 });
 
+var mainBrowser = null;
+var res = API.getScreenResolution();
+
 API.onServerEventTrigger.connect(function (eventName, args) {
     switch (eventName) {
         case 'anim_list':
             API.sendChatMessage("anim_list_call");
             //API.showCursor(true);
             anim_menu.Visible = true;
+            break;
+        case 'cef_test':
+            API.sendChatMessage("cef_test_call");
+            mainBrowser = API.createCefBrowser(1000.0, 500.0, true);
+            API.waitUntilCefBrowserInit(mainBrowser);
+            API.sendChatMessage("RES Y: " + res.Height);
+            API.setCefBrowserPosition(mainBrowser, res.Width / 2.0 - (1000.0)/2.0, res.Height / 2.0 - (500.0)/2.0);
+            API.loadPageCefBrowser(mainBrowser, "bankpin.html");
+            API.showCursor(true);
             break;
     }
 });
@@ -118,5 +130,11 @@ API.onKeyUp.connect(function (sender, e) {
     }
     else if (e.KeyCode === Keys.K) {
         API.triggerServerEvent("indicator_right");
+    }
+    else if (e.KeyCode === Keys.Escape) {
+        if (mainBrowser !== null)
+            API.destroyCefBrowser(mainBrowser);
+        mainBrowser = null;
+        API.showCursor(false);
     }
 });
