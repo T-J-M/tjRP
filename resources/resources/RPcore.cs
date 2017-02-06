@@ -620,6 +620,7 @@ public class RPcore : Script
         }
     }
 
+    [Command("me", GreedyArg = true)]
     public void meCommand(Client player, string msg)
     {
         int indx = getPlayerIndexByRealName(player.name);
@@ -761,80 +762,87 @@ public class RPcore : Script
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            char[] delimiter = { ' ' };
-            string[] words = action.Split(delimiter);
-
-            string item_name;
-            string loc_name = "";
-
-            item_name = words[0];
-            if(words.Length > 1)
+            if(!API.isPlayerInAnyVehicle(player))
             {
-                loc_name = words[1];
-                loc_name = loc_name.ToLower();
-            }
-            
+                char[] delimiter = { ' ' };
+                string[] words = action.Split(delimiter);
 
-            if (loc_name == "trunk")
-            {
-                List<NetHandle> vehs = new List<NetHandle>();
-                vehs = API.getAllVehicles();
-                float smallestDist = 100.0f;
-                NetHandle closestveh = new NetHandle();
-                bool found = false;
-                for (int i = 0; i < vehs.Count; i++)
+                string item_name;
+                string loc_name = "";
+
+                item_name = words[0];
+                if (words.Length > 1)
                 {
-                    float vr = vecdist(API.getEntityPosition(vehs[i]), API.getEntityPosition(player));
-                    if (vr < smallestDist)
-                    {
-                        smallestDist = vr;
-                        closestveh = vehs[i];
-                        found = true;
-                    }
+                    loc_name = words[1];
+                    loc_name = loc_name.ToLower();
                 }
 
-                if (found)
+
+                if (loc_name == "trunk")
                 {
-                    if (smallestDist < 3.5f)
+                    List<NetHandle> vehs = new List<NetHandle>();
+                    vehs = API.getAllVehicles();
+                    float smallestDist = 100.0f;
+                    NetHandle closestveh = new NetHandle();
+                    bool found = false;
+                    for (int i = 0; i < vehs.Count; i++)
                     {
-                        if (API.getVehicleDoorState(closestveh, 5) == true)
+                        float vr = vecdist(API.getEntityPosition(vehs[i]), API.getEntityPosition(player));
+                        if (vr < smallestDist)
                         {
-                            VehicleData temp_vehdata = getVehicleDataByID(API.getEntitySyncedData(closestveh, "id"));
-                            for (int i = 0; i < temp_vehdata.inventory.Count; i++)
+                            smallestDist = vr;
+                            closestveh = vehs[i];
+                            found = true;
+                        }
+                    }
+
+                    if (found)
+                    {
+                        if (smallestDist < 3.5f)
+                        {
+                            if (API.getVehicleDoorState(closestveh, 5) == true)
                             {
-                                if (temp_vehdata.inventory[i].name == item_name)
+                                VehicleData temp_vehdata = getVehicleDataByID(API.getEntitySyncedData(closestveh, "id"));
+                                for (int i = 0; i < temp_vehdata.inventory.Count; i++)
                                 {
-                                    API.playPlayerAnimation(player, 0, "amb@medic@standing@tendtodead@idle_a", "idle_a");
-                                    ObjectData temp = temp_vehdata.inventory[i];
-                                    //temp.obj = API.createObject(temp.obj_id, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
-                                    //API.setEntityPosition(temp.obj, rotatedVector(API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player).Z + 90.0));
-                                    //API.consoleOutput("Player Z ROT: " + API.getEntityRotation(player).Z);
-                                    //API.setEntitySyncedData(temp.obj, "del", true);
-                                    //API.setEntityPositionFrozen(temp.obj, true);
-                                    //API.setEntityCollisionless(temp.obj, true);
-                                    //worldObjectPool.Add(temp);
-                                    /*API.deleteEntity(temp.obj);
-                                    int x = 0;
-                                    for(; x < worldObjectPool.Count; x++)
+                                    if (temp_vehdata.inventory[i].name == item_name)
                                     {
-                                        if(worldObjectPool[x].id == temp.id)
+                                        API.playPlayerAnimation(player, 0, "amb@medic@standing@tendtodead@idle_a", "idle_a");
+                                        ObjectData temp = temp_vehdata.inventory[i];
+                                        //temp.obj = API.createObject(temp.obj_id, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
+                                        //API.setEntityPosition(temp.obj, rotatedVector(API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player).Z + 90.0));
+                                        //API.consoleOutput("Player Z ROT: " + API.getEntityRotation(player).Z);
+                                        //API.setEntitySyncedData(temp.obj, "del", true);
+                                        //API.setEntityPositionFrozen(temp.obj, true);
+                                        //API.setEntityCollisionless(temp.obj, true);
+                                        //worldObjectPool.Add(temp);
+                                        /*API.deleteEntity(temp.obj);
+                                        int x = 0;
+                                        for(; x < worldObjectPool.Count; x++)
                                         {
-                                            worldObjectPool.RemoveAt(x);
-                                            break;
-                                        }
-                                    }*/
-                                    PlayerDatabase[indx].inventory.Add(temp);
-                                    temp_vehdata.inventory.RemoveAt(i);
-                                    replaceVehicleDataByID(API.getEntitySyncedData(closestveh, "id"), temp_vehdata);
-                                    //PlayerDatabase[indx].inventory.RemoveAt(i);
-                                    API.sendChatMessageToPlayer(player, "Took from trunk: " + temp.id);
-                                    break;
+                                            if(worldObjectPool[x].id == temp.id)
+                                            {
+                                                worldObjectPool.RemoveAt(x);
+                                                break;
+                                            }
+                                        }*/
+                                        PlayerDatabase[indx].inventory.Add(temp);
+                                        temp_vehdata.inventory.RemoveAt(i);
+                                        replaceVehicleDataByID(API.getEntitySyncedData(closestveh, "id"), temp_vehdata);
+                                        //PlayerDatabase[indx].inventory.RemoveAt(i);
+                                        API.sendChatMessageToPlayer(player, "Took from trunk: " + temp.id);
+                                        break;
+                                    }
                                 }
+                            }
+                            else
+                            {
+                                API.sendChatMessageToPlayer(player, "Car trunk is closed!");
                             }
                         }
                         else
                         {
-                            API.sendChatMessageToPlayer(player, "Car trunk is closed!");
+                            API.sendChatMessageToPlayer(player, "No car found nearby.");
                         }
                     }
                     else
@@ -842,10 +850,10 @@ public class RPcore : Script
                         API.sendChatMessageToPlayer(player, "No car found nearby.");
                     }
                 }
-                else
-                {
-                    API.sendChatMessageToPlayer(player, "No car found nearby.");
-                }
+            }
+            else
+            {
+                API.sendChatMessageToPlayer(player, "You cannot do that!");
             }
         }
     }
@@ -856,74 +864,80 @@ public class RPcore : Script
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            char[] delimiter = { ' ' };
-            string[] words = action.Split(delimiter);
-
-            string item_name;
-            string loc_name = "";
-
-            item_name = words[0];
-            if(words.Length > 1)
+            if(!API.isPlayerInAnyVehicle(player))
             {
-                loc_name = words[1];
-                loc_name = loc_name.ToLower();
-            }
+                char[] delimiter = { ' ' };
+                string[] words = action.Split(delimiter);
 
-            //if(loc_name == "trunk")
-            if(true)
-            {
-                List<NetHandle> vehs = new List<NetHandle>();
-                vehs = API.getAllVehicles();
-                float smallestDist = 100.0f;
-                NetHandle closestveh = new NetHandle();
-                bool found = false;
-                for (int i = 0; i < vehs.Count; i++)
+                string item_name;
+                string loc_name = "";
+
+                item_name = words[0];
+                if (words.Length > 1)
                 {
-                    float vr = vecdist(API.getEntityPosition(vehs[i]), API.getEntityPosition(player));
-                    if (vr < smallestDist)
-                    {
-                        smallestDist = vr;
-                        closestveh = vehs[i];
-                        found = true;
-                    }
+                    loc_name = words[1];
+                    loc_name = loc_name.ToLower();
                 }
 
-                if (found)
+                if (loc_name == "trunk")
                 {
-                    if (smallestDist < 3.5f)
+                    List<NetHandle> vehs = new List<NetHandle>();
+                    vehs = API.getAllVehicles();
+                    float smallestDist = 100.0f;
+                    NetHandle closestveh = new NetHandle();
+                    bool found = false;
+                    for (int i = 0; i < vehs.Count; i++)
                     {
-                        if (API.getVehicleDoorState(closestveh, 5) == true)
+                        float vr = vecdist(API.getEntityPosition(vehs[i]), API.getEntityPosition(player));
+                        if (vr < smallestDist)
                         {
-                            for (int i = 0; i < PlayerDatabase[indx].inventory.Count; i++)
+                            smallestDist = vr;
+                            closestveh = vehs[i];
+                            found = true;
+                        }
+                    }
+
+                    if (found)
+                    {
+                        if (smallestDist < 3.5f)
+                        {
+                            if (API.getVehicleDoorState(closestveh, 5) == true)
                             {
-                                if (PlayerDatabase[indx].inventory[i].name == item_name)
+                                for (int i = 0; i < PlayerDatabase[indx].inventory.Count; i++)
                                 {
-                                    API.playPlayerAnimation(player, 0, "amb@medic@standing@tendtodead@idle_a", "idle_a");
+                                    if (PlayerDatabase[indx].inventory[i].name == item_name)
+                                    {
+                                        API.playPlayerAnimation(player, 0, "amb@medic@standing@tendtodead@idle_a", "idle_a");
 
-                                    VehicleData temp_vehdata = getVehicleDataByID(API.getEntitySyncedData(closestveh, "id"));
-                                    ObjectData temp = PlayerDatabase[indx].inventory[i];
-                                    //temp.obj = API.createObject(temp.obj_id, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
-                                    //API.setEntityPosition(temp.obj, rotatedVector(API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player).Z + 90.0));
-                                    //API.consoleOutput("Player Z ROT: " + API.getEntityRotation(player).Z);
-                                    //API.setEntitySyncedData(temp.obj, "del", true);
-                                    //API.setEntityPositionFrozen(temp.obj, true);
-                                    //API.setEntityCollisionless(temp.obj, true);
-                                    //worldObjectPool.Add(temp);
+                                        VehicleData temp_vehdata = getVehicleDataByID(API.getEntitySyncedData(closestveh, "id"));
+                                        ObjectData temp = PlayerDatabase[indx].inventory[i];
+                                        //temp.obj = API.createObject(temp.obj_id, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
+                                        //API.setEntityPosition(temp.obj, rotatedVector(API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player).Z + 90.0));
+                                        //API.consoleOutput("Player Z ROT: " + API.getEntityRotation(player).Z);
+                                        //API.setEntitySyncedData(temp.obj, "del", true);
+                                        //API.setEntityPositionFrozen(temp.obj, true);
+                                        //API.setEntityCollisionless(temp.obj, true);
+                                        //worldObjectPool.Add(temp);
 
-                                    
-                                    //boot
-                                    //API.attachEntityToEntity(temp.obj, temp_vehdata.vehicle_hash, loc_name, new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
-                                    temp_vehdata.inventory.Add(temp);
-                                    replaceVehicleDataByID(API.getEntitySyncedData(closestveh, "id"), temp_vehdata);
-                                    PlayerDatabase[indx].inventory.RemoveAt(i);
-                                    API.sendChatMessageToPlayer(player, "Placed in trunk: " + temp.id);
-                                    break;
+
+                                        //boot
+                                        //API.attachEntityToEntity(temp.obj, temp_vehdata.vehicle_hash, loc_name, new Vector3(0.0, 0.0, 0.0), new Vector3(0.0, 0.0, 0.0));
+                                        temp_vehdata.inventory.Add(temp);
+                                        replaceVehicleDataByID(API.getEntitySyncedData(closestveh, "id"), temp_vehdata);
+                                        PlayerDatabase[indx].inventory.RemoveAt(i);
+                                        API.sendChatMessageToPlayer(player, "Placed in trunk: " + temp.id);
+                                        break;
+                                    }
                                 }
+                            }
+                            else
+                            {
+                                API.sendChatMessageToPlayer(player, "Car trunk is closed!");
                             }
                         }
                         else
                         {
-                            API.sendChatMessageToPlayer(player, "Car trunk is closed!");
+                            API.sendChatMessageToPlayer(player, "No car found nearby.");
                         }
                     }
                     else
@@ -931,10 +945,10 @@ public class RPcore : Script
                         API.sendChatMessageToPlayer(player, "No car found nearby.");
                     }
                 }
-                else
-                {
-                    API.sendChatMessageToPlayer(player, "No car found nearby.");
-                }
+            }
+            else
+            {
+                API.sendChatMessageToPlayer(player, "You cannot do that!");
             }
         }
     }
@@ -946,48 +960,55 @@ public class RPcore : Script
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            List<NetHandle> vehs = new List<NetHandle>();
-            vehs = API.getAllVehicles();
-            float smallestDist = 100.0f;
-            NetHandle closestveh = new NetHandle();
-            bool found = false;
-            for (int i = 0; i < vehs.Count; i++)
+            if(!API.isPlayerInAnyVehicle(player))
             {
-                float vr = vecdist(API.getEntityPosition(vehs[i]), API.getEntityPosition(player));
-                if (vr < smallestDist)
+                List<NetHandle> vehs = new List<NetHandle>();
+                vehs = API.getAllVehicles();
+                float smallestDist = 100.0f;
+                NetHandle closestveh = new NetHandle();
+                bool found = false;
+                for (int i = 0; i < vehs.Count; i++)
                 {
-                    smallestDist = vr;
-                    closestveh = vehs[i];
-                    found = true;
-                }
-            }
-
-            if (found)
-            {
-                if (smallestDist < 3.5f)
-                {
-                    if (action == "trunk")
+                    float vr = vecdist(API.getEntityPosition(vehs[i]), API.getEntityPosition(player));
+                    if (vr < smallestDist)
                     {
-                        if (API.getVehicleDoorState(closestveh, 5) == true)
+                        smallestDist = vr;
+                        closestveh = vehs[i];
+                        found = true;
+                    }
+                }
+
+                if (found)
+                {
+                    if (smallestDist < 3.5f)
+                    {
+                        if (action == "trunk")
                         {
-                            API.sendChatMessageToPlayer(player, "~y~--Trunk Inventory--");
-                            VehicleData temp_vehdata = getVehicleDataByID(API.getEntitySyncedData(closestveh, "id"));
-                            if (temp_vehdata.inventory.Count == 0)
+                            if (API.getVehicleDoorState(closestveh, 5) == true)
                             {
-                                API.sendChatMessageToPlayer(player, "~y~[EMPTY]");
+                                API.sendChatMessageToPlayer(player, "~y~--Trunk Inventory--");
+                                VehicleData temp_vehdata = getVehicleDataByID(API.getEntitySyncedData(closestveh, "id"));
+                                if (temp_vehdata.inventory.Count == 0)
+                                {
+                                    API.sendChatMessageToPlayer(player, "~y~[EMPTY]");
+                                }
+                                else
+                                {
+                                    for (int i = 0; i < temp_vehdata.inventory.Count; i++)
+                                    {
+                                        API.sendChatMessageToPlayer(player, "~y~" + temp_vehdata.inventory[i].name);
+                                    }
+                                }
                             }
                             else
                             {
-                                for (int i = 0; i < temp_vehdata.inventory.Count; i++)
-                                {
-                                    API.sendChatMessageToPlayer(player, "~y~" + temp_vehdata.inventory[i].name);
-                                }
+                                API.sendChatMessageToPlayer(player, "Car trunk is closed!");
                             }
                         }
-                        else
-                        {
-                            API.sendChatMessageToPlayer(player, "Car trunk is closed!");
-                        }
+                    }
+                    else
+                    {
+                        API.sendChatMessageToPlayer(player, "No car found nearby.");
                     }
                 }
                 else
@@ -997,7 +1018,7 @@ public class RPcore : Script
             }
             else
             {
-                API.sendChatMessageToPlayer(player, "No car found nearby.");
+                API.sendChatMessageToPlayer(player, "You cannot do that!");
             }
         }
     }
@@ -1046,27 +1067,34 @@ public class RPcore : Script
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            for(int i = 0; i < PlayerDatabase[indx].inventory.Count; i++)
+            if(!API.isPlayerInAnyVehicle(player))
             {
-                if(PlayerDatabase[indx].inventory[i].name == item)
+                for (int i = 0; i < PlayerDatabase[indx].inventory.Count; i++)
                 {
-                    API.playPlayerAnimation(player, 0, "amb@medic@standing@tendtodead@idle_a", "idle_a");
-                    //int tempid = RandomIDObjectPool[0];
-                   // RandomIDObjectPool.RemoveAt(0);
-                    ObjectData temp = PlayerDatabase[indx].inventory[i];
-                    temp.obj = API.createObject(temp.obj_id, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
-                    API.setEntityPosition(temp.obj, rotatedVector(API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player).Z + 90.0));
-                    API.consoleOutput("Player Z ROT: " + API.getEntityRotation(player).Z);
-                    API.setEntitySyncedData(temp.obj, "del", true);
-                    API.setEntityPositionFrozen(temp.obj, true);
-                    API.setEntityCollisionless(temp.obj, true);
-                    worldObjectPool.Add(temp);
+                    if (PlayerDatabase[indx].inventory[i].name == item)
+                    {
+                        API.playPlayerAnimation(player, 0, "amb@medic@standing@tendtodead@idle_a", "idle_a");
+                        //int tempid = RandomIDObjectPool[0];
+                        // RandomIDObjectPool.RemoveAt(0);
+                        ObjectData temp = PlayerDatabase[indx].inventory[i];
+                        temp.obj = API.createObject(temp.obj_id, API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player));
+                        API.setEntityPosition(temp.obj, rotatedVector(API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityPosition(player) - new Vector3(0.0, 0.0, 1.0), API.getEntityRotation(player).Z + 90.0));
+                        API.consoleOutput("Player Z ROT: " + API.getEntityRotation(player).Z);
+                        API.setEntitySyncedData(temp.obj, "del", true);
+                        API.setEntityPositionFrozen(temp.obj, true);
+                        API.setEntityCollisionless(temp.obj, true);
+                        worldObjectPool.Add(temp);
 
-                    
-                    PlayerDatabase[indx].inventory.RemoveAt(i);
-                    API.sendChatMessageToPlayer(player, "Placed down object: " + temp.id);
-                    break;
+
+                        PlayerDatabase[indx].inventory.RemoveAt(i);
+                        API.sendChatMessageToPlayer(player, "Placed down object: " + temp.id);
+                        break;
+                    }
                 }
+            }
+            else
+            {
+                API.sendChatMessageToPlayer(player, "You cannot do that!");
             }
         }
     }
@@ -1077,37 +1105,44 @@ public class RPcore : Script
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
-            float smallestDist = 100.0f;
-            ObjectData closestObj = new ObjectData();
-            int obj_indx = 0;
-            bool found = false;
-            for (int i = 0; i < worldObjectPool.Count; i++)
+            if(!API.isPlayerInAnyVehicle(player))
             {
-                float vr = vecdist(API.getEntityPosition(worldObjectPool[i].obj), API.getEntityPosition(player));
-                if (vr < smallestDist)
+                float smallestDist = 100.0f;
+                ObjectData closestObj = new ObjectData();
+                int obj_indx = 0;
+                bool found = false;
+                for (int i = 0; i < worldObjectPool.Count; i++)
                 {
-                    smallestDist = vr;
-                    closestObj = worldObjectPool[i];
-                    obj_indx = i;
-                    //worldObjectPool.RemoveAt(i);
-                    found = true;
-                }
-            }
-
-            if (found)
-            {
-                if (smallestDist < 2.5f)
-                {
-                    bool val = API.getEntitySyncedData(closestObj.obj, "del");
-                    if (val == true)
+                    float vr = vecdist(API.getEntityPosition(worldObjectPool[i].obj), API.getEntityPosition(player));
+                    if (vr < smallestDist)
                     {
-                        API.playPlayerAnimation(player, 0, "amb@medic@standing@tendtodead@idle_a", "idle_a");
-                        worldObjectPool.RemoveAt(obj_indx);
-                        PlayerDatabase[indx].inventory.Add(closestObj);
-                        API.deleteEntity(closestObj.obj);
-                        API.sendChatMessageToPlayer(player, "Picked up object: " + closestObj.id);
+                        smallestDist = vr;
+                        closestObj = worldObjectPool[i];
+                        obj_indx = i;
+                        //worldObjectPool.RemoveAt(i);
+                        found = true;
                     }
                 }
+
+                if (found)
+                {
+                    if (smallestDist < 2.5f)
+                    {
+                        bool val = API.getEntitySyncedData(closestObj.obj, "del");
+                        if (val == true)
+                        {
+                            API.playPlayerAnimation(player, 0, "amb@medic@standing@tendtodead@idle_a", "idle_a");
+                            worldObjectPool.RemoveAt(obj_indx);
+                            PlayerDatabase[indx].inventory.Add(closestObj);
+                            API.deleteEntity(closestObj.obj);
+                            API.sendChatMessageToPlayer(player, "Picked up object: " + closestObj.id);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                API.sendChatMessageToPlayer(player, "You cannot do that!");
             }
         }
     }
@@ -1469,14 +1504,14 @@ public class RPcore : Script
         }
     }
 
-    [Command("spawncar")]
-    public void spawnCar(Client player)
+    [Command("spawncar", GreedyArg = true)]
+    public void spawnCar(Client player, string carname)
     {
         int indx = getPlayerIndexByRealName(player.name);
         if (indx != -1)
         {
             API.sendChatMessageToPlayer(player, "Spawned car!");
-            Vehicle hash = API.createVehicle(API.vehicleNameToModel("primo"), API.getEntityPosition(player), API.getEntityRotation(player), 0, 0);
+            Vehicle hash = API.createVehicle(API.vehicleNameToModel(carname), API.getEntityPosition(player), API.getEntityRotation(player), 0, 0);
             //API.setVehicleNumberPlate(hash, "TJM");
             VehicleData temp = new VehicleData(true);
             temp.vehicle_id = RandomIDVehiclePool[0];
